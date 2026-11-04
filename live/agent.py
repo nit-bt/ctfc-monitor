@@ -130,7 +130,9 @@ def site_check():
 def send(payload):
     body = json.dumps(payload).encode()
     req = urllib.request.Request(URL + "/push", data=body, method="POST",
-                                 headers={"Content-Type": "application/json", "X-Live-Token": TOKEN})
+                                 headers={"Content-Type": "application/json", "X-Live-Token": TOKEN,
+                                          # Cloudflare blocks the default "Python-urllib" agent (error 1010)
+                                          "User-Agent": "ctf-live-agent/1"})
     opener = urllib.request.build_opener(urllib.request.ProxyHandler({}))
     with opener.open(req, timeout=3) as r:
         r.read()
@@ -146,6 +148,7 @@ def main():
     site = None
     site_t = 0
     ncpu = os.cpu_count() or 1
+    last_err, err_t = None, 0
     while True:
         time.sleep(INTERVAL)
         now = time.time()
@@ -198,8 +201,14 @@ def main():
         }
         try:
             send(payload)
-        except Exception:
-            pass   # board unreachable: keep going, the card turns "no data" on the board
+            if last_err:
+                print("ctf-live: board reachable again", flush=True)
+                last_err = None
+        except Exception as e:   # board unreachable: keep going, the card turns "no data" on the board
+            err = "%s: %s" % (type(e).__name__, e)
+            if err != last_err or now - err_t > 300:   # log each new error, repeats every 5 min
+                print("ctf-live: can't reach %s/push: %s" % (URL, err), flush=True)
+                last_err, err_t = err, now
 
 
 if __name__ == "__main__":
