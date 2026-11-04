@@ -349,7 +349,8 @@ function loadServers() {
   if (!agentCfg) api("GET", "api/agent-config").then(function (c) {
     agentCfg = c;
     var u = document.getElementById("add-url");
-    if (!u.value) u.value = location.protocol + "//" + location.hostname + ":" + c.port;
+    // behind HTTPS (Caddy on 443) the board is the page's own origin; raw http needs the board port
+    if (!u.value) u.value = location.protocol === "https:" ? location.origin : location.protocol + "//" + location.hostname + ":" + c.port;
   });
 }
 function showCmd(name, role) {
