@@ -53,6 +53,16 @@ Everything now goes through HTTPS, so the old `http://IP:3001` / `:3002` should 
    ```
 3. Board → Servers tab → Board address: `https://live.ctfc.live` (new VMs get it in their install command).
 
+> ⚠️ Do steps 2-3 on **every** server (platform and each challenge server) **before** closing the ports in step 1.
+> Once the raw ports are shut, the only way in is HTTPS through Cloudflare, and Cloudflare **blocks an out-of-date agent**
+> as a bot (the board goes "NO DATA", the agent logs nothing on the old version). So first update each agent:
+> ```bash
+> sudo git -C /opt/ctfc-monitor pull        # clone it there first if the folder is missing
+> sudo cp /opt/ctfc-monitor/live/agent.py "$(systemctl cat ctf-live-agent | sed -n 's/^ExecStart=.* //p')"
+> sudo systemctl restart ctf-live-agent
+> ```
+> After closing the ports, confirm every Kuma monitor and every board card is green. `curl -s "<KUMA_PUSH_URL>&status=up&msg=test&ping=1"` must return `{"ok":true}` from each server.
+
 ## Optional: login wall for Kuma and the board
 
 Cloudflare → Zero Trust (free up to 50 users) → Access → Applications → Add → Self-hosted →

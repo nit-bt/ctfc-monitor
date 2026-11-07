@@ -20,6 +20,11 @@ Discord: channel → Edit Channel → Integrations → Webhooks → New Webhook 
 - platform: `PEERS="chal-1=<chal-1 ip>:2376 chal-2=<chal-2 ip>:2376"`
 - each challenge server: `PEERS="platform=<platform ip>:80"`
 
+> ⚠️ A peer address is hard-coded. If you move or retire the peer (e.g. the platform moves from GCP to Contabo, or a
+> GCP VM is stopped), update `PEERS` on every server that lists it, or clear it (`PEERS=""`). A stale peer makes the
+> server report **down** even though it is healthy. If each server already pushes to Kuma (`KUMA_PUSH_URL`), Kuma alerts
+> on a dead server on its own, so `PEERS` is optional and `PEERS=""` is the safe default.
+
 What it checks every minute: Docker running, RAM and disk below 85 %, containers killed for hitting their RAM cap; platform: site answers and the 4 CTFd containers run; challenge servers: firewall on and Docker API answering; plus the peers.
 You get 🔴 once, a reminder every 15 min while it stays broken, ✅ when it's fixed.
 
